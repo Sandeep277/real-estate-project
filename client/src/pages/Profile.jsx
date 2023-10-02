@@ -3,7 +3,14 @@ import { useRef, useState, useEffect } from "react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
 
-import { updateUserStart, updateUserSuccess, updateUserFailure } from "../redux/user/userSlice";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  deleteUserFailure,
+  deleteUserSuccess,
+  deleteUserStart,
+} from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
 
 
@@ -46,19 +53,19 @@ const Profile = () => {
 
 
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.id]: e.target.value})
+    setFormData({ ...formData, [e.target.id]: e.target.value })
   }
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (data.success == false) {
@@ -70,6 +77,24 @@ const Profile = () => {
       setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error.message));
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success == false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
     }
   }
 
@@ -100,21 +125,21 @@ const Profile = () => {
           }
         </p>
         <input
-          onChange={ handleChange }
+          onChange={handleChange}
           defaultValue={currentUser.username}
           id="username"
           type="text"
           placeholder="username"
           className="border p-3 rounded-lg" />
         <input
-          onChange={ handleChange }
+          onChange={handleChange}
           defaultValue={currentUser.email}
           id="email"
           type="text"
           placeholder="email"
           className="border p-3 rounded-lg" />
         <input
-          onChange={ handleChange }
+          onChange={handleChange}
           id="password"
           type="password"
           placeholder="password"
@@ -122,12 +147,15 @@ const Profile = () => {
         <button disabled={loading} type="submit" className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Updating' : 'Update'}</button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete Account</span>
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-700 cursor-pointer"
+        >Delete Account</span>
         <span className="text-red-700 cursor-pointer">Sign out</span>
       </div>
 
-      <p className="text-red-700">{error ? error: ''}</p>
-      <p className="text-green-700">{updateSuccess ? 'User is updated successfully': ''}</p>
+      <p className="text-red-700">{error ? error : ''}</p>
+      <p className="text-green-700">{updateSuccess ? 'User is updated successfully' : ''}</p>
     </div>
   )
 }
