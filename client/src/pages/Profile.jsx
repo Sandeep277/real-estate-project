@@ -2,6 +2,7 @@ import { useSelector } from "react-redux"
 import { useRef, useState, useEffect } from "react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
+import { Link } from "react-router-dom";
 
 import {
   updateUserStart,
@@ -164,6 +165,10 @@ const Profile = () => {
           placeholder="password"
           className="border p-3 rounded-lg" />
         <button disabled={loading} type="submit" className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Updating' : 'Update'}</button>
+        <Link className="bg-green-700 text-white rounded-lg p-3 text-center uppercase hover:opacity-95"
+         to={"/create-listing"}>
+          Create Listing
+        </Link>
       </form>
       <div className="flex justify-between mt-5">
         <span
