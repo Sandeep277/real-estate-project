@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux"
 import { useRef, useState, useEffect } from "react";
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { getDownloadURL, getStorage, list, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
 import { Link } from "react-router-dom";
 
@@ -26,6 +26,8 @@ const Profile = () => {
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showListingError, setShowListingError] = useState(false);
+  const [userListing, setUserListing] = useState([]);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -108,7 +110,7 @@ const Profile = () => {
       dispatch(signOutUserStart());
       const res = await fetch('/api/auth/signout');
       const data = await res.json();
-      if(data.success === false) {
+      if (data.success === false) {
         dispatch(signOutUserFailure(data.message));
         return;
       }
@@ -117,6 +119,23 @@ const Profile = () => {
       dispatch(signOutUserFailure(error.message));
     }
   }
+
+
+  const handleShowListings = async () => {
+    try {
+      setShowListingError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingError(true);
+        return;
+      }
+      setUserListing(data);
+    } catch (error) {
+      setShowListingError(true);
+    }
+  }
+
 
   return (
     <div className="p-3 max-w-lg mx-auto">
@@ -166,7 +185,7 @@ const Profile = () => {
           className="border p-3 rounded-lg" />
         <button disabled={loading} type="submit" className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Updating' : 'Update'}</button>
         <Link className="bg-green-700 text-white rounded-lg p-3 text-center uppercase hover:opacity-95"
-         to={"/create-listing"}>
+          to={"/create-listing"}>
           Create Listing
         </Link>
       </form>
@@ -180,6 +199,35 @@ const Profile = () => {
 
       <p className="text-red-700">{error ? error : ''}</p>
       <p className="text-green-700">{updateSuccess ? 'User is updated successfully' : ''}</p>
+      <button
+        onClick={handleShowListings}
+        className="text-green-700 w-full">Show Listings</button>
+      <p>
+        {showListingError ? 'Error showing listings' : ''}
+      </p>
+      {userListing && userListing.length > 0 &&
+        <div className=" flex flex-col gap-4">
+          <h1 className="text-center mt-7 text-2xl font-semibold">Your Listing</h1>
+          {userListing.map((listing) =>
+          <div key={listing._id}
+            className="border flex rounded-lg p-3 justify-between items-center gap-4">
+            <Link to={`listing/${listing._id}`} >
+              <img
+                className="w-20 h-20 object-cover rounded-lg"
+                src={listing.imageUrls} alt="listing image" />
+            </Link>
+            <Link
+              className="font-semibold flex-1 hover:underline truncate"
+              to={`/listing/${listing._id}`}>
+              <p >{listing.name}</p>
+            </Link>
+            <div className="flex flex-col items-center">
+              <button className="text-red-800 uppercase">Delete</button>
+              <button className="text-green-800 uppercase">Edit</button>
+            </div>
+          </div>)}
+        </div>
+      }
     </div>
   )
 }
