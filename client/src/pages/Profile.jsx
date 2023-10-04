@@ -30,6 +30,9 @@ const Profile = () => {
   const [userListing, setUserListing] = useState([]);
   const dispatch = useDispatch();
 
+  // console.log(file)
+  console.log(userListing);
+
   useEffect(() => {
     if (file) {
       handleFileUpload(file);
@@ -146,7 +149,9 @@ const Profile = () => {
         console.log(data.message);
         return;
       }
-      setUserListing(userListing.filter((listing) => listing._id !== listingId));
+      setUserListing((prev) =>
+        prev.filter((listing) => listing._id !== listingId)
+      );
     } catch (error) {
       console.log(error.message);
     }
@@ -218,30 +223,30 @@ const Profile = () => {
       <button
         onClick={handleShowListings}
         className="text-green-700 w-full">Show Listings</button>
-      <p>
+      <p className="text-red-700 mt-5">
         {showListingError ? 'Error showing listings' : ''}
       </p>
       {userListing && userListing.length > 0 &&
         <div className=" flex flex-col gap-4">
           <h1 className="text-center mt-7 text-2xl font-semibold">Your Listing</h1>
           {userListing.map((listing) =>
-          <div key={listing._id}
-            className="border flex rounded-lg p-3 justify-between items-center gap-4">
-            <Link to={`listing/${listing._id}`} >
-              <img
-                className="w-20 h-20 object-cover rounded-lg"
-                src={listing.imageUrls[0]} alt="listing image" />
-            </Link>
-            <Link
-              className="font-semibold flex-1 hover:underline truncate"
-              to={`/listing/${listing._id}`}>
-              <p >{listing.name}</p>
-            </Link>
-            <div className="flex flex-col items-center">
-              <button onClick={() => handleListingDelte(listing._id)} className="text-red-800 uppercase">Delete</button>
-              <button className="text-green-800 uppercase">Edit</button>
-            </div>
-          </div>)}
+            <div key={listing._id}
+              className="border flex rounded-lg p-3 justify-between items-center gap-4">
+              <Link to={`/listing/${listing._id}`} >
+                <img
+                  className="w-20 h-20 object-cover rounded-lg"
+                  src={listing.imageUrls[0]} alt="listing image" />
+              </Link>
+              <Link
+                className="font-semibold flex-1 hover:underline truncate"
+                to={`/listing/${listing._id}`}>
+                <p >{listing.name}</p>
+              </Link>
+              <div className="flex flex-col items-center">
+                <button onClick={() => handleListingDelte(listing._id)} className="text-red-800 uppercase">Delete</button>
+                <button className="text-green-800 uppercase">Edit</button>
+              </div>
+            </div>)}
         </div>
       }
     </div>
