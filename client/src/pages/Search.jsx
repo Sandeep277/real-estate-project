@@ -1,4 +1,3 @@
-import { set } from 'mongoose';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ListingItem from '../components/ListingItem';
@@ -16,6 +15,7 @@ const Search = () => {
     });
     const[loading, setLoading] = useState(false);
     const[listings, setListings] = useState([]);
+    const [showMore, setShowMore] = useState(false);
 
     console.log(listings)
     useEffect(() => {
@@ -49,10 +49,16 @@ const Search = () => {
         }
 
         const fetchListings = async () => {
+            setShowMore(false);
             setLoading(true);
             const serarchQuery = urlParams.toString();
             const res = await fetch(`/api/listing/get?${serarchQuery}`);
             const data = await res.json();
+            if(data.length > 8) {
+                setShowMore(true);
+            } else {
+                setShowMore(false);
+            }
             setListings(data);
             setLoading(false);
         }
@@ -97,6 +103,21 @@ const Search = () => {
         const searchQuery = urlParams.toString();
 
         navigate(`/search?${searchQuery}`);
+    }
+
+    const onShowMoreClick = async () => {
+        const numberOfListings = listings.length;
+        const startIndex = numberOfListings;
+        const urlParams = new URLSearchParams(location.search);
+        urlParams.set('startIndex', startIndex);
+        const searchQuery = urlParams.toString();
+        const res = await fetch(`/api/listing/get?${searchQuery}`);
+        const data = await res.json();
+        if(data.length < 9) {
+            setShowMore(false);
+        }
+        setListings([...listings, ...data]);
+
     }
 
     return (
@@ -193,6 +214,15 @@ const Search = () => {
                             <ListingItem key={listing._id} listing={listing} />
                         ))
                     }
+
+                    {showMore && (
+                        <button
+                         onClick={ onShowMoreClick }
+                         className='text-green-700 hove:underline p-7 text-center w-full'
+                        >
+                            Show more
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
